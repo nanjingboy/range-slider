@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="RangeSliderView">
+        <attr name="trackTintColor" format="color|reference"/>
+        <attr name="trackHighlightTintColor" format="color|reference"/>
+        <attr name="trackHeight" format="dimension|reference"/>
+        <attr name="thumbRadius" format="dimension|reference"/>
+        <attr name="thumbOutlineSize" format="dimension|reference"/>
+        <attr name="displayTextFontSize" format="dimension|reference"/>
+    </declare-styleable>
+</resources>

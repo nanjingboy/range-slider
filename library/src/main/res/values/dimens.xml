@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="trackHeight">6dp</dimen>
+    <dimen name="thumbRadius">16dp</dimen>
+    <dimen name="thumbOutlineSize">2dp</dimen>
+    <dimen name="displayTextFontSize">14sp</dimen>
+    <dimen name="displayTextBasicOffsetY">6dp</dimen>
+</resources>
