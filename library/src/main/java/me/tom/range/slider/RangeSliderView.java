@@ -36,6 +36,21 @@ public class RangeSliderView extends View {
 
     private float mBeginTrackOffsetX;
 
+    private OnValueChangedListener mOnValueChangedListener;
+
+    public static abstract class OnValueChangedListener {
+
+        public abstract void onValueChanged(int minValue, int maxValue);
+
+        public String parseMinValueDisplayText(int minValue) {
+            return String.valueOf(minValue);
+        }
+
+        public String parseMaxValueDisplayText(int maxValue) {
+            return String.valueOf(maxValue);
+        }
+    }
+
     public RangeSliderView(Context context) {
         this(context, null);
     }
@@ -92,6 +107,11 @@ public class RangeSliderView extends View {
         mMaxValue = 100;
     }
 
+    public void setOnValueChangedListener(OnValueChangedListener onValueChangedListener) {
+        mOnValueChangedListener = onValueChangedListener;
+        invalidate();
+    }
+
     public void setRangeValues(ArrayList<Integer> values) {
         mValues = values;
         setMinAndMaxValue(mValues.get(0), mValues.get(mValues.size() - 1));
@@ -115,10 +135,28 @@ public class RangeSliderView extends View {
         mTrack.draw(canvas, getWidth(), minValueOffsetX, maxValueOffsetX, offsetY - mTrackHeight / 2);
 
         mMinValueThumb.draw(canvas, minValueOffsetX, offsetY);
-        mMinValueDisplayLabel.draw(canvas, String.valueOf(mMinValue), minValueOffsetX, displayLabelOffsetY);
+        if (mOnValueChangedListener != null) {
+            mMinValueDisplayLabel.draw(
+                    canvas,
+                    mOnValueChangedListener.parseMinValueDisplayText(mMinValue),
+                    minValueOffsetX,
+                    displayLabelOffsetY
+            );
+        } else {
+            mMinValueDisplayLabel.draw(canvas, String.valueOf(mMinValue), minValueOffsetX, displayLabelOffsetY);
+        }
 
         mMaxValueThumb.draw(canvas, maxValueOffsetX, offsetY);
-        mMaxValueDisplayLabel.draw(canvas, String.valueOf(mMaxValue), maxValueOffsetX, displayLabelOffsetY);
+        if (mOnValueChangedListener != null) {
+            mMaxValueDisplayLabel.draw(
+                    canvas,
+                    mOnValueChangedListener.parseMaxValueDisplayText(mMaxValue),
+                    maxValueOffsetX,
+                    displayLabelOffsetY
+            );
+        } else {
+            mMaxValueDisplayLabel.draw(canvas, String.valueOf(mMaxValue), maxValueOffsetX, displayLabelOffsetY);
+        }
     }
 
     @Override
@@ -179,6 +217,9 @@ public class RangeSliderView extends View {
                 }
 
                 if (mMinValueThumb.isHighlight || mMaxValueThumb.isHighlight) {
+                    if (mOnValueChangedListener != null) {
+                        mOnValueChangedListener.onValueChanged(mMinValue, mMaxValue);
+                    }
                     invalidate();
                 }
                 break;
