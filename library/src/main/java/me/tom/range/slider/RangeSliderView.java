@@ -6,6 +6,7 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.ArrayList;
@@ -32,6 +33,8 @@ public class RangeSliderView extends View {
 
     private int mMinValue;
     private int mMaxValue;
+
+    private float mBeginTrackOffsetX;
 
     public RangeSliderView(Context context) {
         this(context, null);
@@ -73,10 +76,10 @@ public class RangeSliderView extends View {
         );
         mDisplayTextBasicOffsetY = resources.getDimension(R.dimen.displayTextBasicOffsetY);
 
-        mMinValueThumb = new ThumbLayer(mThumbRadius, mThumbOutlineSize, mTrackHighlightTintColor);
+        mMinValueThumb = new ThumbLayer(mThumbRadius, mThumbOutlineSize, mTrackHighlightTintColor, mTrackTintColor);
         mMinValueDisplayLabel = new TextLayer(mDisplayTextFontSize, mTrackHighlightTintColor);
 
-        mMaxValueThumb = new ThumbLayer(mThumbRadius, mThumbOutlineSize, mTrackHighlightTintColor);
+        mMaxValueThumb = new ThumbLayer(mThumbRadius, mThumbOutlineSize, mTrackHighlightTintColor, mTrackTintColor);
         mMaxValueDisplayLabel = new TextLayer(mDisplayTextFontSize, mTrackHighlightTintColor);
 
         mTrack = new TrackLayer(mTrackHeight, mTrackTintColor, mTrackHighlightTintColor);
@@ -116,6 +119,72 @@ public class RangeSliderView extends View {
 
         mMaxValueThumb.draw(canvas, maxValueOffsetX, offsetY);
         mMaxValueDisplayLabel.draw(canvas, String.valueOf(mMaxValue), maxValueOffsetX, displayLabelOffsetY);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_CANCEL || event.getAction() == MotionEvent.ACTION_UP) {
+            mMinValueThumb.isHighlight = false;
+            mMaxValueThumb.isHighlight = false;
+            invalidate();
+            return true;
+        }
+
+        float offsetX = event.getX();
+        float radius = mThumbRadius + mThumbOutlineSize / 2;
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                float minValuePosition = position(mMinValue);
+                if (offsetX >= minValuePosition - radius && offsetX <= minValuePosition + radius) {
+                    mMinValueThumb.isHighlight = true;
+                } else {
+                    float maxValuePosition = position(mMaxValue);
+                    if (offsetX >= maxValuePosition - radius && offsetX <= maxValuePosition + radius) {
+                        mMaxValueThumb.isHighlight = true;
+                    }
+                }
+
+                if (mMinValueThumb.isHighlight || mMaxValueThumb.isHighlight) {
+                    mBeginTrackOffsetX = offsetX;
+                    invalidate();
+                } else {
+                    mBeginTrackOffsetX = -1;
+                }
+                break;
+            case MotionEvent.ACTION_MOVE:
+                if (mMinValue == mMaxValue && mBeginTrackOffsetX > -1 && offsetX > mBeginTrackOffsetX && !mMaxValueThumb.isHighlight) {
+                    mMinValueThumb.isHighlight = false;
+                    mMaxValueThumb.isHighlight = true;
+                }
+                int count = mValues.size();
+                int index = (int)(offsetX * count / (getWidth() - radius));
+                if (index < 0) {
+                    index = 0;
+                } else if (index > count - 1) {
+                    index = count - 1;
+                }
+
+                if (mMinValueThumb.isHighlight) {
+                    if (index > mValues.indexOf(mMaxValue)) {
+                        mMinValue = mMaxValue;
+                    } else {
+                        mMinValue = mValues.get(index);
+                    }
+                } else if (mMaxValueThumb.isHighlight) {
+                    if (index < mValues.indexOf(mMinValue)) {
+                        mMaxValue = mMinValue;
+                    } else {
+                        mMaxValue = mValues.get(index);
+                    }
+                }
+
+                if (mMinValueThumb.isHighlight || mMaxValueThumb.isHighlight) {
+                    invalidate();
+                }
+                break;
+        }
+
+        return true;
     }
 
     protected float position(int value) {

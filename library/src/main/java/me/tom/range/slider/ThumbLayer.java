@@ -9,12 +9,17 @@ class ThumbLayer {
     private float mRadius;
     private float mOutlineSize;
 
+    private int mkHighlightColor;
+
     private Paint mOutlinePaint;
     private Paint mFillPaint;
 
-    ThumbLayer(float radius, float outlineSize, int outlineColor) {
+    boolean isHighlight = false;
+
+    ThumbLayer(float radius, float outlineSize, int outlineColor, int highlightColor) {
         mRadius = radius;
         mOutlineSize = outlineSize;
+        mkHighlightColor = highlightColor;
 
         mOutlinePaint = new Paint();
         mOutlinePaint.setAntiAlias(true);
@@ -24,13 +29,18 @@ class ThumbLayer {
 
         mFillPaint = new Paint();
         mFillPaint.setAntiAlias(true);
-        mFillPaint.setColor(Color.WHITE);
         mFillPaint.setStyle(Paint.Style.FILL);
         mFillPaint.setStrokeWidth(0);
     }
 
     void draw(Canvas canvas, float cx, float cy) {
         canvas.drawCircle(cx, cy, mRadius, mOutlinePaint);
+
+        if (isHighlight) {
+            mFillPaint.setColor(mkHighlightColor);
+        } else {
+            mFillPaint.setColor(Color.WHITE);
+        }
         canvas.drawCircle(cx, cy, mRadius - mOutlineSize / 2, mFillPaint);
     }
 }
